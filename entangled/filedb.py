@@ -34,7 +34,14 @@ class FileStat:
 
     @staticmethod
     def from_path(path: Path, deps: Optional[list[Path]]):
-        stat = os.stat(path)
+        try:
+            stat = os.stat(path)
+        except FileNotFoundError:
+            with open(path, "w") as f:
+                f.write("")
+            # Set the modification time to epoch to ensure it will be overwritten
+            os.utime(path, (0, 0))
+            stat = os.stat(path)
         size = stat.st_size
         with open(path, "r") as f:
             digest = hexdigest(f.read())
@@ -133,6 +140,8 @@ class FileDB:
         return [p for p, s in self._files.items() if s != stat(p)]
 
     def has_changed(self, path: Path) -> bool:
+        if not path.exists():
+            return True
         return stat(path) != self[path]
 
     def update(self, path: Path, deps: Optional[list[Path]] = None):
