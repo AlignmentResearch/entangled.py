@@ -167,7 +167,7 @@ class FileDB:
         return self._files.keys()
 
     def check(self, path: Path, content: str) -> bool:
-        return hexdigest(content) == self._files[path].hexdigest
+        return hexdigest(content) == self._files[path].hexdigest and path.exists()
 
     @staticmethod
     def initialize() -> FileDB:
